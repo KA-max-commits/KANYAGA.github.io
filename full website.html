@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KANYAGA.COM</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header, footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        input, textarea, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        .posts {
+            margin-top: 20px;
+        }
+        .post {
+            border-bottom: 1px solid #ddd;
+            padding: 20px 0;
+        }
+        .post img, .post video {
+            max-width: 100%;
+        }
+        .post-interactions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .post-interactions button {
+            margin-right: 10px;
+        }
+        .ads-placeholder {
+            background-color: #f9f9f9;
+            border: 1px dashed #ccc;
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>KANYAGA.COM</h1>
+    <h1>PUBLISH YOUR CONTENT NOW</h1>
+    <nav>
+        <a href="index.html">Home</a> |
+        <a href="page2.html">Page 2</a>
+        <a href="https://www.KANYAGA.NET"www.kanyaga.net</a>
+    </nav>
+</header>
+
+<form id="postForm">
+    <label for="title">Post Title</label>
+    <input type="text" id="title" placeholder="Enter post title" required>
+
+    <label for="content">Content</label>
+    <textarea id="content" rows="5" placeholder="Enter post content" required></textarea>
+
+    <label for="image">Upload Image</label>
+    <input type="file" id="image" accept="image/*">
+
+    <label for="video">Upload Video</label>
+    <input type="file" id="video" accept="video/*">
+
+    <button type="submit">Publish Post</button>
+</form>
+
+<!-- Placeholder for ads -->
+<div class="ads-placeholder">
+    <p>Your Ad Here (Placeholder)</p>
+</div>
+
+<h2>Published Posts</h2>
+<div class="posts" id="posts"></div>
+
+<!-- Pagination -->
+<div class="pagination">
+    <a href="index.html">1</a> |
+    <a href="page2.html">2</a>
+</div>
+
+<footer>
+    <p>&copy; 2024 My Website</p>
+</footer>
+
+<script>
+    // Get existing posts from localStorage
+    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+    const postContainer = document.getElementById('posts');
+
+    // Render posts
+    function renderPosts() {
+        postContainer.innerHTML = '';
+        posts.forEach((post, index) => {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+
+            // Generate post HTML
+            postDiv.innerHTML = `
+                <h3>${post.title}</h3>
+                <p>${post.content}</p>
+                ${post.image ? `<img src="${post.image}" alt="Post Image" />` : ''}
+                ${post.video ? `<video controls><source src="${post.video}" type="video/mp4"></video>` : ''}
+                <div class="post-interactions">
+                    <span>Views: <span id="views-${index}">${post.views}</span></span>
+                    <button onclick="likePost(${index})">Like (<span id="likes-${index}">${post.likes}</span>)</button>
+                    <button onclick="toggleComments(${index})">Comments (${post.comments.length})</button>
+                </div>
+                <div class="comments" id="comments-${index}" style="display: none;">
+                    <textarea id="comment-input-${index}" placeholder="Add a comment"></textarea>
+                    <button onclick="addComment(${index})">Post Comment</button>
+                    <ul id="comment-list-${index}">
+                        ${post.comments.map(comment => `<li>${comment}</li>`).join('')}
+                    </ul>
+                </div>
+            `;
+            postContainer.appendChild(postDiv);
+        });
+    }
+
+    // Handle form submission
+    document.getElementById('postForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+        
+        // Get form values
+        const title = document.getElementById('title').value;
+        const content = document.getElementById('content').value;
+        const imageInput = document.getElementById('image');
+        const videoInput = document.getElementById('video');
+        
+        // Generate post data
+        const post = {
+            title,
+            content,
+            image: imageInput.files.length > 0 ? URL.createObjectURL(imageInput.files[0]) : null,
+            video: videoInput.files.length > 0 ? URL.createObjectURL(videoInput.files[0]) : null,
+            views: 0,
+            likes: 0,
+            comments: []
+        };
+        
+        // Save post
+        posts.push(post);
+        localStorage.setItem('posts', JSON.stringify(posts));
+        renderPosts();
+        document.getElementById('postForm').reset();
+    });
+
+    // Handle likes
+    function likePost(index) {
+        posts[index].likes++;
+        localStorage.setItem('posts', JSON.stringify(posts));
+        document.getElementById(`likes-${index}`).textContent = posts[index].likes;
+    }
+
+    // Handle comments
+    function toggleComments(index) {
+        const commentSection = document.getElementById(`comments-${index}`);
+        commentSection.style.display = commentSection.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function addComment(index) {
+        const commentInput = document.getElementById(`comment-input-${index}`);
+        if (commentInput.value) {
+            posts[index].comments.push(commentInput.value);
+            localStorage.setItem('posts', JSON.stringify(posts));
+            renderPosts();
+        }
+    }
+
+    // Simulate increasing view counts
+    function increaseViewCount(index) {
+        posts[index].views++;
+        localStorage.setItem('posts', JSON.stringify(posts));
+        document.getElementById(`views-${index}`).textContent = posts[index].views;
+    }
+
+    // Increment views every time the page loads
+    posts.forEach((_, index) => increaseViewCount(index));
+
+    renderPosts();
+</script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page 2 - Published Posts</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        header, footer {
+            text-align: center;
+            padding: 10px;
+            background-color: #f4f4f4;
+        }
+        .posts {
+            margin-top: 20px;
+        }
+        .post {
+            border-bottom: 1px solid #ddd;
+            padding: 20px 0;
+        }
+        .post img, .post video {
+            max-width: 100%;
+        }
+        .pagination {
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Page 2</h1>
+    <nav>
+        <a href="index.html">Home</a> |
+        <a href="page2.html">Page 2</a>
+    </nav>
+</header>
+
+<h2>Posts on Page 2</h2>
+<div class="posts" id="posts"></div>
+
+<!-- Pagination -->
+<div class="pagination">
+    <a href="index.html">1</a> |
+    <a href="page2.html">2</a>
+</div>
+
+<footer>
+    <p>&copy; 2024 My Website</p>
+</footer>
+
+<script>
+    const posts = JSON.parse(localStorage.getItem('posts')) || [];
+    const postContainer = document.getElementById('posts');
+
+    function renderPosts() {
+        postContainer.innerHTML = '';
+        posts.forEach((post, index) => {
+            const postDiv = document.createElement('div');
+            postDiv.classList.add('post');
+
+            postDiv.innerHTML = `
+                <h3>${post.title}</h3>
+                <p>${post.content}</p>
+                ${post.image ? `<img src="${post.image}" alt="Post Image" />` : ''}
+                ${post.video ? `<video controls><source src="${post.video}" type="video/mp4"></video>` : ''}
+                <p>Views: ${post.views}, Likes: ${post.likes}, Comments: ${post.comments.length}</p>
+            `;
+            postContainer.appendChild(postDiv);
+        });
+    }
+
+    renderPosts();
+</script>
+
+</body>
+</html>
